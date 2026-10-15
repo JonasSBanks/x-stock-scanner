@@ -1,0 +1,21 @@
+# Secrets and personal settings
+.env
+
+# Saved X login session (can log in as the secondary account!)
+.auth/
+
+# Local database and cached symbol lists
+data/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

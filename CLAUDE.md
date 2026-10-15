@@ -84,8 +84,11 @@ x-stock-scanner/
 │   ├── sources/
 │   │   ├── base.py        # PostSource interface: fetch_since(last_seen) -> list[Post]
 │   │   └── x_playwright/
-│   │       ├── source.py
-│   │       └── selectors.py
+│   │       ├── auth.py        # manual login flow (called by scanner/login.py)
+│   │       ├── source.py      # drives the browser, captures timeline JSON
+│   │       ├── parse.py       # raw X JSON -> Post objects (pure Python, tested)
+│   │       ├── selectors.py   # every X-specific URL/selector/JSON path
+│   │       └── __main__.py    # debug: print scraped posts
 │   └── web/
 │       ├── app.py         # FastAPI routes
 │       ├── templates/     # index.html, ticker.html, user.html
@@ -103,11 +106,13 @@ x-stock-scanner/
 
 ## Build order
 
+The owner chose to build the X data collection first (before tickers).
+
 1. Scaffold: structure, `.gitignore`, `.env.example`, `requirements.txt` and README. Commit and push.
-2. `tickers.py` + tests. This is pure Python and a good first step.
-3. `db.py` schema + queries, tested with fake data.
-4. `login.py`, then the Playwright source. Print scraped posts before saving anything.
-5. `ingest.py`: polling, catch-up, writing to the DB.
+2. `config.py` + `login.py` (manual login, saves `.auth/state.json`).
+3. Playwright source, reading X's own JSON responses (`HomeLatestTimeline`) via `page.on("response")` instead of parsing the page HTML. Save raw samples to `data/raw/`, build `parse.py` + tests against them, then scrolling/stop conditions. Print scraped posts before saving anything.
+4. `db.py` schema + queries (`posts`, `accounts`, `state` first), tested with fake data.
+5. `tickers.py` + tests, then `ingest.py`: polling, catch-up, writing posts and mentions to the DB.
 6. FastAPI endpoints.
 7. Trending page with window toggle and auto-refresh.
 8. Ticker and user search pages.
